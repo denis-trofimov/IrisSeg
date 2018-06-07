@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Iris segmentation using GAC and GrabCut (PSIVT Workshops 2015)
+Authors - Sandipan Banerjee & Domingo Mery
+Usage - python GrabCutIris_LevelSets_Ellipse.py <filename>
+"""
+
+
 import numpy as np
 import cv2
 import sys
@@ -14,9 +21,7 @@ from matplotlib import pyplot as ppl
 import os
 #import cv2.cv as cv
 
-print '*** Iris segmentation using GAC and GrabCut (PSIVT Workshops 2015) ***'
-print '*** Authors - Sandipan Banerjee & Domingo Mery ***'
-print '*** Usage - python GrabCutIris_LevelSets_Ellipse.py <filename> *** \n'
+
 
 segF = 'SegResults'
 if not os.path.exists(segF):
