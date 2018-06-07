@@ -22,6 +22,193 @@ import os
 #import cv2.cv as cv
 
 
+class FitEllipse:
+
+    def __init__(self, source_image, slider_pos):
+        self.source_image = source_image
+        cv.CreateTrackbar("Threshold", "Result", slider_pos, 255, self.process_image)
+        self.process_image(slider_pos)
+
+    def process_image(self, slider_pos):
+        global cimg, source_image1, ellipse_size, maxf, maxs, eoc, lastcx,lastcy,lastr
+        """
+        This function finds contours, draws them and their approximation by ellipses.
+        """
+        stor = cv.CreateMemStorage()
+
+        # Create the destination images
+        cimg = cv.CloneImage(self.source_image)
+        cv.Zero(cimg)
+        image02 = cv.CloneImage(self.source_image)
+        cv.Zero(image02)
+        image04 = cv.CreateImage(cv.GetSize(self.source_image), cv.IPL_DEPTH_8U, 3)
+        cv.Zero(image04)
+
+        # Threshold the source image. This needful for cv.FindContours().
+        cv.Threshold(self.source_image, image02, slider_pos, 255, cv.CV_THRESH_BINARY)
+
+        # Find all contours.
+        cont = cv.FindContours(image02,
+            stor,
+            cv.CV_RETR_LIST,
+            cv.CV_CHAIN_APPROX_NONE,
+            (0, 0))
+
+        maxf = 0
+        maxs = 0
+        size1 = 0
+
+        for c in contour_iterator(cont):
+            if len(c) > ellipse_size:
+                PointArray2D32f = cv.CreateMat(1, len(c), cv.CV_32FC2)
+                for (i, (x, y)) in enumerate(c):
+                    PointArray2D32f[0, i] = (x, y)
+
+
+                # Draw the current contour in gray
+                gray = cv.CV_RGB(100, 100, 100)
+                cv.DrawContours(image04, c, gray, gray,0,1,8,(0,0))
+
+                if iter == 0:
+                    strng = segF + '/' + 'contour1.png'
+                    cv.SaveImage(strng,image04)
+                color = (255,255,255)
+
+                (center, size, angle) = cv.FitEllipse2(PointArray2D32f)
+
+                # Convert ellipse data from float to integer representation.
+                center = (cv.Round(center[0]), cv.Round(center[1]))
+                size = (cv.Round(size[0] * 0.5), cv.Round(size[1] * 0.5))
+
+                if iter == 1:
+                    if size[0] > size[1]:
+                        size2 = size[0]
+                    else:
+                        size2 = size[1]
+
+                    if size2 > size1:
+                        size1 = size2
+                        size3 = size
+
+                # Fits ellipse to current contour.
+                if eoc == 0 and iter == 2:
+                    rand_val = abs((lastr - ((size[0]+size[1])/2)))
+                    if rand_val > 20 and float(max(size[0],size[1]))/float(min(size[0],size[1])) < 1.5:
+                        lastcx = center[0]
+                        lastcy = center[1]
+                        lastr = (size[0]+size[1])/2
+
+                    if rand_val > 20 and float(max(size[0],size[1]))/float(min(size[0],size[1])) < 1.4:
+                        cv.Ellipse(cimg, center, size,
+                                  angle, 0, 360,
+                                  color,2, cv.CV_AA, 0)
+                        cv.Ellipse(source_image1, center, size,
+                                  angle, 0, 360,
+                                  color,2, cv.CV_AA, 0)
+
+                elif eoc == 1 and iter == 2:
+                    (int,cntr,rad) = cv.MinEnclosingCircle(PointArray2D32f)
+                    cntr = (cv.Round(cntr[0]), cv.Round(cntr[1]))
+                    rad = (cv.Round(rad))
+                    if maxf == 0 and maxs == 0:
+                        cv.Circle(cimg, cntr, rad, color, 1, cv.CV_AA, shift=0)
+                        cv.Circle(source_image1, cntr, rad, color, 2, cv.CV_AA, shift=0)
+                        maxf = rad
+                    elif (maxf > 0 and maxs == 0) and abs(rad - maxf) > 30:
+                        cv.Circle(cimg, cntr, rad, color, 2, cv.CV_AA, shift=0)
+                        cv.Circle(source_image1, cntr, rad, color, 2, cv.CV_AA, shift=0)
+                        maxs = len(c)
+        if iter == 1:
+            temp3 = 2*abs(size3[1] - size3[0])
+            if (temp3 > 40):
+                eoc = 1
+
+
+def rgb2gray(img):
+    """Convert a RGB image to gray scale."""
+    return 0.2989*img[:,:,0] + 0.587*img[:,:,1] + 0.114*img[:,:,2]
+
+def circle_levelset(shape, center, sqradius, scalerow=1.0):
+    """Build a binary function with a circle as the 0.5-levelset."""
+    grid = np.mgrid[map(slice, shape)].T - center
+    phi = sqradius - np.sqrt(np.sum((grid.T)**2, 0))
+    u = np.float_(phi > 0)
+    return u
+
+def test_iris():
+    global lvl_up,lvl_down,lvl_left,lvl_right
+    # Load the image.
+    img_lvl = imread(filename)/255.0
+
+    # g(I)
+    gI = morphsnakes.gborders(img_lvl, alpha=2200, sigma=5.48)
+
+    # Morphological GAC. Initialization of the level-set.
+    mgac = morphsnakes.MorphGAC(gI, smoothing=1, threshold=0.31, balloon=1)
+    mgac.levelset = circle_levelset(img_lvl.shape, (cy, cx), (int(max_t/2) + 30))
+
+    # Visual evolution.
+    ppl.figure()
+    ij = morphsnakes.evolve_visual(mgac, num_iters=120, background=img_lvl)
+    #print ij.shape
+
+    x_list = []
+    y_list = []
+
+    for i in range(w-1):
+        for j in range(h-1):
+            if ij[j][i] == 0:
+                eyeball_bw[j][i] = (255,0,0)
+            else:
+                x_list.append(i)
+                y_list.append(j)
+                eyeball_bw[j][i] = (0,0,255)
+
+    lvl_down = max(y_list)
+    lvl_up = min(y_list)
+    lvl_right = max(x_list)
+    lvl_left = min(x_list)
+
+
+def contour_iterator(contour):
+    while contour:
+        yield contour
+        contour = contour.h_next()
+
+
+def test_pupil():
+    global p_up,p_down,p_left,p_right
+    # Load the image.
+    img_lvl = imread(filename)/255.0
+
+    # g(I)
+    gI = morphsnakes.gborders(img_lvl, alpha=2200, sigma=5.48)
+
+    # Morphological GAC. Initialization of the level-set.
+    mgac = morphsnakes.MorphGAC(gI, smoothing=1, threshold=0.31, balloon=1)
+    mgac.levelset = circle_levelset(img_lvl.shape, (cy, cx), (max_t*0.3))
+
+    # Visual evolution.
+    ppl.figure()
+    ij = morphsnakes.evolve_visual(mgac, num_iters=50, background=img_lvl)
+
+    x_list = []
+    y_list = []
+
+    for i in range(w-1):
+        for j in range(h-1):
+            if ij[j][i] == 0:
+                iris_bw[j][i] = (255,0,0)
+            else:
+                x_list.append(i)
+                y_list.append(j)
+                iris_bw[j][i] = (0,0,255)
+
+    p_down = max(y_list)
+    p_up = min(y_list)
+    p_right = max(x_list)
+    p_left = min(x_list)
+
 
 segF = 'SegResults'
 if not os.path.exists(segF):
@@ -210,194 +397,7 @@ thickness = 3           # brush thickness
 output_file = []
 iteration = 1
 
-
-def contour_iterator(contour):
-    while contour:
-        yield contour
-        contour = contour.h_next()
-
-class FitEllipse:
-
-    def __init__(self, source_image, slider_pos):
-        self.source_image = source_image
-        cv.CreateTrackbar("Threshold", "Result", slider_pos, 255, self.process_image)
-        self.process_image(slider_pos)
-
-    def process_image(self, slider_pos):
-        global cimg, source_image1, ellipse_size, maxf, maxs, eoc, lastcx,lastcy,lastr
-        """
-        This function finds contours, draws them and their approximation by ellipses.
-        """
-        stor = cv.CreateMemStorage()
-
-        # Create the destination images
-        cimg = cv.CloneImage(self.source_image)
-        cv.Zero(cimg)
-        image02 = cv.CloneImage(self.source_image)
-        cv.Zero(image02)
-        image04 = cv.CreateImage(cv.GetSize(self.source_image), cv.IPL_DEPTH_8U, 3)
-        cv.Zero(image04)
-
-        # Threshold the source image. This needful for cv.FindContours().
-        cv.Threshold(self.source_image, image02, slider_pos, 255, cv.CV_THRESH_BINARY)
-
-        # Find all contours.
-        cont = cv.FindContours(image02,
-            stor,
-            cv.CV_RETR_LIST,
-            cv.CV_CHAIN_APPROX_NONE,
-            (0, 0))
-
-        maxf = 0
-        maxs = 0
-        size1 = 0
-
-        for c in contour_iterator(cont):
-            if len(c) > ellipse_size:
-                PointArray2D32f = cv.CreateMat(1, len(c), cv.CV_32FC2)
-                for (i, (x, y)) in enumerate(c):
-                    PointArray2D32f[0, i] = (x, y)
-
-
-                # Draw the current contour in gray
-                gray = cv.CV_RGB(100, 100, 100)
-                cv.DrawContours(image04, c, gray, gray,0,1,8,(0,0))
-
-                if iter == 0:
-                    strng = segF + '/' + 'contour1.png'
-                    cv.SaveImage(strng,image04)
-                color = (255,255,255)
-
-                (center, size, angle) = cv.FitEllipse2(PointArray2D32f)
-
-                # Convert ellipse data from float to integer representation.
-                center = (cv.Round(center[0]), cv.Round(center[1]))
-                size = (cv.Round(size[0] * 0.5), cv.Round(size[1] * 0.5))
-
-                if iter == 1:
-                    if size[0] > size[1]:
-                        size2 = size[0]
-                    else:
-                        size2 = size[1]
-
-                    if size2 > size1:
-                        size1 = size2
-                        size3 = size
-
-                # Fits ellipse to current contour.
-                if eoc == 0 and iter == 2:
-                    rand_val = abs((lastr - ((size[0]+size[1])/2)))
-                    if rand_val > 20 and float(max(size[0],size[1]))/float(min(size[0],size[1])) < 1.5:
-                        lastcx = center[0]
-                        lastcy = center[1]
-                        lastr = (size[0]+size[1])/2
-
-                    if rand_val > 20 and float(max(size[0],size[1]))/float(min(size[0],size[1])) < 1.4:
-                        cv.Ellipse(cimg, center, size,
-                                  angle, 0, 360,
-                                  color,2, cv.CV_AA, 0)
-                        cv.Ellipse(source_image1, center, size,
-                                  angle, 0, 360,
-                                  color,2, cv.CV_AA, 0)
-
-                elif eoc == 1 and iter == 2:
-                    (int,cntr,rad) = cv.MinEnclosingCircle(PointArray2D32f)
-                    cntr = (cv.Round(cntr[0]), cv.Round(cntr[1]))
-                    rad = (cv.Round(rad))
-                    if maxf == 0 and maxs == 0:
-                        cv.Circle(cimg, cntr, rad, color, 1, cv.CV_AA, shift=0)
-                        cv.Circle(source_image1, cntr, rad, color, 2, cv.CV_AA, shift=0)
-                        maxf = rad
-                    elif (maxf > 0 and maxs == 0) and abs(rad - maxf) > 30:
-                        cv.Circle(cimg, cntr, rad, color, 2, cv.CV_AA, shift=0)
-                        cv.Circle(source_image1, cntr, rad, color, 2, cv.CV_AA, shift=0)
-                        maxs = len(c)
-        if iter == 1:
-            temp3 = 2*abs(size3[1] - size3[0])
-            if (temp3 > 40):
-                eoc = 1
-
-
-def rgb2gray(img):
-    """Convert a RGB image to gray scale."""
-    return 0.2989*img[:,:,0] + 0.587*img[:,:,1] + 0.114*img[:,:,2]
-
-def circle_levelset(shape, center, sqradius, scalerow=1.0):
-    """Build a binary function with a circle as the 0.5-levelset."""
-    grid = np.mgrid[map(slice, shape)].T - center
-    phi = sqradius - np.sqrt(np.sum((grid.T)**2, 0))
-    u = np.float_(phi > 0)
-    return u
-
-def test_iris():
-    global lvl_up,lvl_down,lvl_left,lvl_right
-    # Load the image.
-    img_lvl = imread(filename)/255.0
-
-    # g(I)
-    gI = morphsnakes.gborders(img_lvl, alpha=2200, sigma=5.48)
-
-    # Morphological GAC. Initialization of the level-set.
-    mgac = morphsnakes.MorphGAC(gI, smoothing=1, threshold=0.31, balloon=1)
-    mgac.levelset = circle_levelset(img_lvl.shape, (cy, cx), (int(max_t/2) + 30))
-
-    # Visual evolution.
-    ppl.figure()
-    ij = morphsnakes.evolve_visual(mgac, num_iters=120, background=img_lvl)
-    #print ij.shape
-
-    x_list = []
-    y_list = []
-
-    for i in range(w-1):
-        for j in range(h-1):
-            if ij[j][i] == 0:
-                eyeball_bw[j][i] = (255,0,0)
-            else:
-                x_list.append(i)
-                y_list.append(j)
-                eyeball_bw[j][i] = (0,0,255)
-
-    lvl_down = max(y_list)
-    lvl_up = min(y_list)
-    lvl_right = max(x_list)
-    lvl_left = min(x_list)
-
 test_iris()
-
-def test_pupil():
-    global p_up,p_down,p_left,p_right
-    # Load the image.
-    img_lvl = imread(filename)/255.0
-
-    # g(I)
-    gI = morphsnakes.gborders(img_lvl, alpha=2200, sigma=5.48)
-
-    # Morphological GAC. Initialization of the level-set.
-    mgac = morphsnakes.MorphGAC(gI, smoothing=1, threshold=0.31, balloon=1)
-    mgac.levelset = circle_levelset(img_lvl.shape, (cy, cx), (max_t*0.3))
-
-    # Visual evolution.
-    ppl.figure()
-    ij = morphsnakes.evolve_visual(mgac, num_iters=50, background=img_lvl)
-
-    x_list = []
-    y_list = []
-
-    for i in range(w-1):
-        for j in range(h-1):
-            if ij[j][i] == 0:
-                iris_bw[j][i] = (255,0,0)
-            else:
-                x_list.append(i)
-                y_list.append(j)
-                iris_bw[j][i] = (0,0,255)
-
-    p_down = max(y_list)
-    p_up = min(y_list)
-    p_right = max(x_list)
-    p_left = min(x_list)
-
 test_pupil()
 
 if (p_left - lvl_left) > 1.3*(lvl_right - p_right):
