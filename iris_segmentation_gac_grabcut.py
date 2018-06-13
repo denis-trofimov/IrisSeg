@@ -10,16 +10,11 @@ Usage - python GrabCutIris_LevelSets_Ellipse.py <filename>
 import numpy as np
 import cv2
 import sys
-#import time
 import morphsnakes
 from cv2 import cv
 from scipy.misc import imread
 from matplotlib import pyplot as ppl
-#import urllib2
-#import math
-#import random
 import os
-#import cv2.cv as cv
 
 
 class FitEllipse:
@@ -130,7 +125,7 @@ def rgb2gray(img):
 
 def circle_levelset(shape, center, sqradius, scalerow=1.0):
     """Build a binary function with a circle as the 0.5-levelset."""
-    grid = np.mgrid[map(slice, shape)].T - center
+    grid = np.mgrid[list(map(slice, shape))].T - center
     phi = sqradius - np.sqrt(np.sum((grid.T)**2, 0))
     u = np.float_(phi > 0)
     return u
@@ -245,7 +240,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         filename = sys.argv[1] # for drawing purposes
     else:
-        print 'Image not found!'
+        print('Image not found!')
 
     #f1.write(filename)
     #f1.write(',')
@@ -401,10 +396,10 @@ if __name__ == '__main__':
     test_pupil()
 
     if (p_left - lvl_left) > 1.3*(lvl_right - p_right):
-        print 'Left WRONG'
+        print('Left WRONG')
         lvl_left = lvl_left + int((p_left - lvl_left)-(lvl_right - p_right))
     elif (lvl_right - p_right) > 1.3*(p_left - lvl_left):
-        print 'Right WRONG'
+        print('Right WRONG')
         lvl_right = lvl_right - int((lvl_right - p_right)-(p_left - lvl_left))
 
     if (p_right - p_left) > (p_down - p_up):
@@ -560,5 +555,5 @@ if __name__ == '__main__':
     output_file = os.path.join(segF, os.path.basename(filename).split('.')[0] + '_grabcut_output.png')
     cv2.imwrite(output_file,res)
 
-    print 'Done segmenting!!!'
+    print('Done segmenting!!!')
     cv2.destroyAllWindows()
