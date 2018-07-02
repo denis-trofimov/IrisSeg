@@ -259,8 +259,8 @@ if __name__ == '__main__':
     # Stage 1 - Intensity profiling
 
     h,w,d = img.shape
-    h3 = h/3
-    w3 = w/3
+    h3 = int(h/3)
+    w3 = int(w/3)
 
     lft = 1*w3
     rt = 2*w3
