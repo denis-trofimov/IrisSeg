@@ -3,7 +3,9 @@
 """
 Iris segmentation using GAC and GrabCut (PSIVT Workshops 2015)
 Authors - Sandipan Banerjee & Domingo Mery
-Usage - python GrabCutIris_LevelSets_Ellipse.py <filename>
+Contibutor Denis Trofimov https://github.com/denis-trofimov
+http://pythonmachinelearningcv.com
+Usage - python iris_segmentation_gac_grabcut.py <filename>
 """
 
 
