@@ -13,7 +13,6 @@ import os
 import sys
 import numpy as np
 import cv2
-from cv2 import cv
 from scipy.misc import imread
 from matplotlib import pyplot as ppl
 import morphsnakes
@@ -522,16 +521,9 @@ if __name__ == '__main__':
     strng = os.path.join(segF, os.path.basename(filename).split('.')[0] + '_seg.png')
     cv2.imwrite(strng,output)
 
-    source_image1 = cv.LoadImage(filename, cv.CV_LOAD_IMAGE_GRAYSCALE)
-    source_image = cv.LoadImage(strng, cv.CV_LOAD_IMAGE_GRAYSCALE)
-
-    cv.NamedWindow("Result", 1)
-
     # Stage 4 - Ellipse fitting
-
-    fe = FitEllipse(source_image, (min_val+20))
-
-    tab1 = cv2.imread(strng)
+    fe = FitEllipse(output, (min_val+20))
+    tab1 = output
     iter = 1
     flag_t = 0
 
