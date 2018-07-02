@@ -429,7 +429,7 @@ if __name__ == '__main__':
 
     ellipse_size = 2*ellipse_size
 
-    # STage 3 - GrabCut
+    # Stage 3 - GrabCut
 
     mask = np.zeros(img.shape[:2],dtype = np.uint8) # mask initialized to PR_BG
     output = np.zeros(img.shape,np.uint8)           # output image to be shown
@@ -519,18 +519,10 @@ if __name__ == '__main__':
     output = cv.bitwise_and(img2,img2,mask=mask2)
 
     strng = os.path.join(segF, os.path.basename(filename).split('.')[0] + '_seg.png')
-    cv.imwrite(strng,output)
-
-    source_image1 = cv.LoadImage(filename, cv.CV_LOAD_IMAGE_GRAYSCALE)
-    source_image = cv.LoadImage(strng, cv.CV_LOAD_IMAGE_GRAYSCALE)
-
-    cv.NamedWindow("Result", 1)
 
     # Stage 4 - Ellipse fitting
-
-    fe = FitEllipse(source_image, (min_val+20))
-
-    tab1 = cv.imread(strng)
+    fe = FitEllipse(img, (min_val+20))
+    tab1 = output
     iter = 1
     flag_t = 0
 
@@ -555,20 +547,15 @@ if __name__ == '__main__':
                     tab1[j][i] = (0,0,0)
 
     cv.imwrite(strng,tab1)
-
-    source_image = cv.LoadImage(strng, cv.CV_LOAD_IMAGE_GRAYSCALE)
-    source_image1 = cv.LoadImage(filename, cv.CV_LOAD_IMAGE_GRAYSCALE)
-    fe = FitEllipse(source_image, (min_val+20))
-
-    iter = 2
-    source_image = cv.LoadImage(strng, cv.CV_LOAD_IMAGE_GRAYSCALE)
-    source_image1 = cv.LoadImage(filename, cv.CV_LOAD_IMAGE_GRAYSCALE)
-    fe = FitEllipse(source_image, (min_val+20))
+#
+#    source_image1 = cv.imread(filename, cv.IMREAD_GRAYSCALE)
+#    source_image = cv.imread(strng, cv.IMREAD_GRAYSCALE)
+#    fe = FitEllipse(source_image, (min_val+20))
 
     # Saving results
 
     strng1 = os.path.join(segF, os.path.basename(filename).split('.')[0] + '_contour.png')
-    cv.SaveImage(strng1,source_image1)
+    cv.imwrite(strng1,source_image1)
     cimg1 = cv.imread(strng1)
     bar = np.zeros((img.shape[0],5,3),np.uint8)
     res = np.hstack((img2,bar,eyeball_bw,bar,iris_bw,bar,img,bar,output,bar,cimg1))
@@ -576,4 +563,4 @@ if __name__ == '__main__':
     cv.imwrite(output_file,res)
 
     print('Done segmenting!!!')
-    cv.destroyAllWindows()
+#    cv.destroyAllWindows()
