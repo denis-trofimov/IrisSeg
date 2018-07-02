@@ -10,7 +10,6 @@ Usage - python iris_segmentation_gac_grabcut.py <filename>
 
 
 import numpy as np
-import cv2
 import sys
 import morphsnakes
 from cv2 import cv
@@ -247,7 +246,7 @@ if __name__ == '__main__':
     #f1.write(filename)
     #f1.write(',')
 
-    img = cv2.imread(filename)
+    img = cv.imread(filename)
     img2 = img.copy()                              # copies of the original image
     img3 = img.copy()
     cimg = img.copy()
@@ -417,17 +416,17 @@ if __name__ == '__main__':
     output = np.zeros(img.shape,np.uint8)           # output image to be shown
 
     # input and output windows
-    cv2.namedWindow('output')
-    cv2.namedWindow('input')
-    cv2.moveWindow('input',img.shape[1]+10,90)
+    cv.namedWindow('output')
+    cv.namedWindow('input')
+    cv.moveWindow('input',img.shape[1]+10,90)
 
     rect_over = True
-    cv2.rectangle(img,(lvl_left,lvl_down),(lvl_right,lvl_up),BLUE,2)
+    cv.rectangle(img,(lvl_left,lvl_down),(lvl_right,lvl_up),BLUE,2)
     rect = (min(lvl_left,lvl_right),min(lvl_up,lvl_down),abs(lvl_left-lvl_right),abs(lvl_up-lvl_down))
     rect_or_mask = 0
     bgdmodel = np.zeros((1,65),np.float64)
     fgdmodel = np.zeros((1,65),np.float64)
-    cv2.grabCut(img2,mask,rect,bgdmodel,fgdmodel,1,cv2.GC_INIT_WITH_RECT)
+    cv.grabCut(img2,mask,rect,bgdmodel,fgdmodel,1,cv.GC_INIT_WITH_RECT)
     rect_or_mask = 1
 
     diff = p_up - lvl_up
@@ -435,16 +434,16 @@ if __name__ == '__main__':
     m = p_left - 2
     n = p_up - 2
     while n > (p_up - 1.8*(diff/5)):
-        cv2.circle(img,(m,n),thickness,value['color'],-1)
-        cv2.circle(mask,(m,n),thickness,value['val'],-1)
+        cv.circle(img,(m,n),thickness,value['color'],-1)
+        cv.circle(mask,(m,n),thickness,value['val'],-1)
         m -= 1
         n -= 1
 
     m = p_right + 2
     n = p_up + 2
     while n > (p_up - 1.8*(diff/5)):
-        cv2.circle(img,(m,n),thickness,value['color'],-1)
-        cv2.circle(mask,(m,n),thickness,value['val'],-1)
+        cv.circle(img,(m,n),thickness,value['color'],-1)
+        cv.circle(mask,(m,n),thickness,value['val'],-1)
         m += 1
         n -= 1
 
@@ -453,31 +452,31 @@ if __name__ == '__main__':
     m = p_left - 2
     n = p_down + 2
     while n < (p_down + 1.8*(diff/5)):
-        cv2.circle(img,(m,n),thickness,value['color'],-1)
-        cv2.circle(mask,(m,n),thickness,value['val'],-1)
+        cv.circle(img,(m,n),thickness,value['color'],-1)
+        cv.circle(mask,(m,n),thickness,value['val'],-1)
         m -= 1
         n += 1
 
     m = p_right + 2
     n = p_down + 2
     while n < (p_down + 1.8*(diff/5)):
-        cv2.circle(img,(m,n),thickness,value['color'],-1)
-        cv2.circle(mask,(m,n),thickness,value['val'],-1)
+        cv.circle(img,(m,n),thickness,value['color'],-1)
+        cv.circle(mask,(m,n),thickness,value['val'],-1)
         m += 1
         n += 1
 
     diff = (p_left - lvl_left)/10
     m = p_left - diff
     while m > (lvl_left + diff):
-        cv2.circle(img,(m,cy),thickness,value['color'],-1)
-        cv2.circle(mask,(m,cy),thickness,value['val'],-1)
+        cv.circle(img,(m,cy),thickness,value['color'],-1)
+        cv.circle(mask,(m,cy),thickness,value['val'],-1)
         m -= 1
 
     diff = (lvl_right - p_right)/10
     m = p_right + diff
     while m < (lvl_right - diff):
-        cv2.circle(img,(m,cy),thickness,value['color'],-1)
-        cv2.circle(mask,(m,cy),thickness,value['val'],-1)
+        cv.circle(img,(m,cy),thickness,value['color'],-1)
+        cv.circle(mask,(m,cy),thickness,value['val'],-1)
         m += 1
 
 
@@ -485,8 +484,8 @@ if __name__ == '__main__':
     m = p_left + (diff/5)
     value = DRAW_BG
     while m < (p_left + 4*(diff/5)):
-        cv2.circle(img,(m,cy),thickness,value['color'],-1)
-        cv2.circle(mask,(m,cy),thickness,value['val'],-1)
+        cv.circle(img,(m,cy),thickness,value['color'],-1)
+        cv.circle(mask,(m,cy),thickness,value['val'],-1)
         m += 1
 
     tempi = 0
@@ -494,14 +493,14 @@ if __name__ == '__main__':
     while tempi < 10:
         bgdmodel = np.zeros((1,65),np.float64)
         fgdmodel = np.zeros((1,65),np.float64)
-        cv2.grabCut(img2,mask,rect,bgdmodel,fgdmodel,1,cv2.GC_INIT_WITH_MASK)
+        cv.grabCut(img2,mask,rect,bgdmodel,fgdmodel,1,cv.GC_INIT_WITH_MASK)
         tempi += 1
 
     mask2 = np.where((mask==1) + (mask==3),255,0).astype('uint8')
-    output = cv2.bitwise_and(img2,img2,mask=mask2)
+    output = cv.bitwise_and(img2,img2,mask=mask2)
 
     strng = os.path.join(segF, os.path.basename(filename).split('.')[0] + '_seg.png')
-    cv2.imwrite(strng,output)
+    cv.imwrite(strng,output)
 
     source_image1 = cv.LoadImage(filename, cv.CV_LOAD_IMAGE_GRAYSCALE)
     source_image = cv.LoadImage(strng, cv.CV_LOAD_IMAGE_GRAYSCALE)
@@ -512,7 +511,7 @@ if __name__ == '__main__':
 
     fe = FitEllipse(source_image, (min_val+20))
 
-    tab1 = cv2.imread(strng)
+    tab1 = cv.imread(strng)
     iter = 1
     flag_t = 0
 
@@ -536,7 +535,7 @@ if __name__ == '__main__':
                 if j >= bnd and tab1[j][i][0] == 100:
                     tab1[j][i] = (0,0,0)
 
-    cv2.imwrite(strng,tab1)
+    cv.imwrite(strng,tab1)
 
     source_image = cv.LoadImage(strng, cv.CV_LOAD_IMAGE_GRAYSCALE)
     source_image1 = cv.LoadImage(filename, cv.CV_LOAD_IMAGE_GRAYSCALE)
@@ -551,11 +550,11 @@ if __name__ == '__main__':
 
     strng1 = os.path.join(segF, os.path.basename(filename).split('.')[0] + '_contour.png')
     cv.SaveImage(strng1,source_image1)
-    cimg1 = cv2.imread(strng1)
+    cimg1 = cv.imread(strng1)
     bar = np.zeros((img.shape[0],5,3),np.uint8)
     res = np.hstack((img2,bar,eyeball_bw,bar,iris_bw,bar,img,bar,output,bar,cimg1))
     output_file = os.path.join(segF, os.path.basename(filename).split('.')[0] + '_grabcut_output.png')
-    cv2.imwrite(output_file,res)
+    cv.imwrite(output_file,res)
 
     print('Done segmenting!!!')
-    cv2.destroyAllWindows()
+    cv.destroyAllWindows()
