@@ -260,6 +260,12 @@ if __name__ == '__main__':
     # Stage 1 - Intensity profiling
 
     h,w,d = img.shape
+    """
+    In Python 3, `/` is float division
+    In Python 2, `/` is integer division (assuming int inputs)
+    In both 2 and 3, `//` is integer division
+    [https://stackoverflow.com/questions/21316968/division-in-python-2-7-and-3-3](https://stackoverflow.com/a/21317017/7388116)
+    """
     h3 = h//3
     w3 = w//3
 
@@ -268,6 +274,19 @@ if __name__ == '__main__':
     up = 1*h3
     down = 2*h3
 
+    """
+    The [0] * x creates a list with x elements. So,
+
+    >>> [ 0 ] * 5
+    [0, 0, 0, 0, 0]
+
+    It 'multiplies' the list elements
+    >>> [1, 2, 3] * 3
+    [1, 2, 3, 1, 2, 3, 1, 2, 3]
+    Be warned that they all point to the same object.
+    This is cool for immutables like integers but a pain for things like lists.
+    https://stackoverflow.com/questions/6007881/what-does-the-0x-syntax-do-in-python
+    """
     hor_l = [0]*(int(down-up)//5 + 1)
     ver_l = [0]*(int(rt-lft)//5 + 1)
     temp_l = []
