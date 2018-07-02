@@ -67,7 +67,7 @@ class FitEllipse:
 
                 if iter == 0:
                     strng = segF + '/' + 'contour1.png'
-                    cv.SaveImage(strng,image04)
+                    cv2.imwrite(strng,image04)
                 color = (255,255,255)
 
                 (center, size, angle) = cv.FitEllipse2(PointArray2D32f)
@@ -521,9 +521,16 @@ if __name__ == '__main__':
     strng = os.path.join(segF, os.path.basename(filename).split('.')[0] + '_seg.png')
     cv2.imwrite(strng,output)
 
+    source_image1 = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+    source_image = cv2.imread(strng, cv2.IMREAD_GRAYSCALE)
+
+    cv2.namedWindow("Result", 1)
+
     # Stage 4 - Ellipse fitting
-    fe = FitEllipse(output, (min_val+20))
-    tab1 = output
+
+    fe = FitEllipse(source_image, (min_val+20))
+
+    tab1 = cv2.imread(strng)
     iter = 1
     flag_t = 0
 
@@ -549,15 +556,19 @@ if __name__ == '__main__':
 
     cv2.imwrite(strng,tab1)
 
-    fe = FitEllipse(tab1, (min_val+20))
+    source_image = cv2.imread(strng, cv2.IMREAD_GRAYSCALE)
+    source_image1 = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+    fe = FitEllipse(source_image, (min_val+20))
 
     iter = 2
-    fe = FitEllipse(tab1, (min_val+20))
+    source_image = cv2.imread(strng, cv2.IMREAD_GRAYSCALE)
+    source_image1 = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+    fe = FitEllipse(source_image, (min_val+20))
 
     # Saving results
 
     strng1 = os.path.join(segF, os.path.basename(filename).split('.')[0] + '_contour.png')
-    cv.SaveImage(strng1,source_image1)
+    cv2.imwrite(strng1,source_image1)
     cimg1 = cv2.imread(strng1)
     bar = np.zeros((img.shape[0],5,3),np.uint8)
     res = np.hstack((img2,bar,eyeball_bw,bar,iris_bw,bar,img,bar,output,bar,cimg1))
