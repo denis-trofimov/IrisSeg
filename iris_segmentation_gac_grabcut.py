@@ -22,7 +22,7 @@ class FitEllipse:
 
     def __init__(self, source_image, slider_pos):
         self.source_image = source_image
-        cv.CreateTrackbar("Threshold", "Result", slider_pos, 255, self.process_image)
+        cv2.createTrackbar("Threshold", "Result", slider_pos, 255, self.process_image)
         self.process_image(slider_pos)
 
     def process_image(self, slider_pos):
@@ -30,25 +30,22 @@ class FitEllipse:
         """
         This function finds contours, draws them and their approximation by ellipses.
         """
-        stor = cv.CreateMemStorage()
-
         # Create the destination images
-        cimg = cv.CloneImage(self.source_image)
-        cv.Zero(cimg)
-        image02 = cv.CloneImage(self.source_image)
-        cv.Zero(image02)
-        image04 = cv.CreateImage(cv.GetSize(self.source_image), cv.IPL_DEPTH_8U, 3)
-        cv.Zero(image04)
+        image04 = np.zeros(self.source_image.size(), dtype=np.uint8)
 
-        # Threshold the source image. This needful for cv.FindContours().
-        cv.Threshold(self.source_image, image02, slider_pos, 255, cv.CV_THRESH_BINARY)
+        # Threshold the source image. This needful for cv2.findContours().
+        # Python: retval, dst	=	cv.threshold(	src, thresh, maxval, type[, dst]	)
+
+        retval, dst = cv2.threshold(self.source_image, slider_pos, 255, cv2.THRESH_BINARY)
 
         # Find all contours.
-        cont = cv.FindContours(image02,
-            stor,
-            cv.CV_RETR_LIST,
-            cv.CV_CHAIN_APPROX_NONE,
-            (0, 0))
+        # Python: image, contours, hierarchy	=	cv.findContours(	image, mode, method[, contours[, hierarchy[, offset]]]	)
+        cont = []
+        hierarchy = []
+        dst, cont, hierarchy = cv2.findContours(dst,
+            cv2.RETR_LIST,
+            cv2.CHAIN_APPROX_NONE,
+            cont, hierarchy,  (0, 0))
 
         maxf = 0
         maxs = 0
@@ -60,10 +57,9 @@ class FitEllipse:
                 for (i, (x, y)) in enumerate(c):
                     PointArray2D32f[0, i] = (x, y)
 
-
                 # Draw the current contour in gray
-                gray = cv.CV_RGB(100, 100, 100)
-                cv.DrawContours(image04, c, gray, gray,0,1,8,(0,0))
+                # Python: image	=	cv.drawContours(	image, contours, contourIdx, color[, thickness[, lineType[, hierarchy[, maxLevel[, offset]]]]]	)
+                cv2.drawContours(image04, [c], 0, 100)
 
                 if iter == 0:
                     strng = segF + '/' + 'contour1.png'
