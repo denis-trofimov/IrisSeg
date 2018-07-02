@@ -549,14 +549,10 @@ if __name__ == '__main__':
 
     cv2.imwrite(strng,tab1)
 
-    source_image = cv.LoadImage(strng, cv.CV_LOAD_IMAGE_GRAYSCALE)
-    source_image1 = cv.LoadImage(filename, cv.CV_LOAD_IMAGE_GRAYSCALE)
-    fe = FitEllipse(source_image, (min_val+20))
+    fe = FitEllipse(tab1, (min_val+20))
 
     iter = 2
-    source_image = cv.LoadImage(strng, cv.CV_LOAD_IMAGE_GRAYSCALE)
-    source_image1 = cv.LoadImage(filename, cv.CV_LOAD_IMAGE_GRAYSCALE)
-    fe = FitEllipse(source_image, (min_val+20))
+    fe = FitEllipse(tab1, (min_val+20))
 
     # Saving results
 
