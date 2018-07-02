@@ -9,14 +9,14 @@ Usage - python iris_segmentation_gac_grabcut.py <filename>
 """
 
 
+import os
+import sys
 import numpy as np
 import cv2
-import sys
-import morphsnakes
 from cv2 import cv
 from scipy.misc import imread
 from matplotlib import pyplot as ppl
-import os
+import morphsnakes
 
 
 class FitEllipse:
