@@ -267,8 +267,8 @@ if __name__ == '__main__':
     up = 1*h3
     down = 2*h3
 
-    hor_l = [0]*(int(down-up)/5 + 1)
-    ver_l = [0]*(int(rt-lft)/5 + 1)
+    hor_l = np.asarray([0])*(int(down-up)/5 + 1)
+    ver_l = np.asarray([0])*(int(rt-lft)/5 + 1)
     temp_l = []
     hor_list = []
     ver_list = []
