@@ -141,7 +141,7 @@ def test_iris():
 
     # Morphological GAC. Initialization of the level-set.
     mgac = morphsnakes.MorphGAC(gI, smoothing=1, threshold=0.31, balloon=1)
-    mgac.levelset = circle_levelset(img_lvl.shape, (cy, cx), (int(max_t/2) + 30))
+    mgac.levelset = circle_levelset(img_lvl.shape, (cy, cx), max_t//2 + 30)
 
     # Visual evolution.
     ppl.figure()
@@ -385,8 +385,8 @@ if __name__ == '__main__':
             j += 1
         i += 1
 
-    cx = int(sumh/len(hlst))
-    cy = int(sumv/len(vlst))
+    cx = sumh//len(hlst)
+    cy = sumv//len(vlst)
     cx1 = 0
     cy1 = 0
 
@@ -484,14 +484,14 @@ if __name__ == '__main__':
         m += 1
         n += 1
 
-    diff = (p_left - lvl_left)/10
+    diff = (p_left - lvl_left)//10
     m = p_left - diff
     while m > (lvl_left + diff):
         cv.circle(img,(m,cy),thickness,value['color'],-1)
         cv.circle(mask,(m,cy),thickness,value['val'],-1)
         m -= 1
 
-    diff = (lvl_right - p_right)/10
+    diff = (lvl_right - p_right)//10
     m = p_right + diff
     while m < (lvl_right - diff):
         cv.circle(img,(m,cy),thickness,value['color'],-1)
@@ -500,7 +500,7 @@ if __name__ == '__main__':
 
 
     diff = p_right - p_left
-    m = p_left + (diff/5)
+    m = p_left + (diff//5)
     value = DRAW_BG
     while m < (p_left + 4*(diff/5)):
         cv.circle(img,(m,cy),thickness,value['color'],-1)
