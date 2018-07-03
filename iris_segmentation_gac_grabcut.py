@@ -31,7 +31,7 @@ class FitEllipse:
         This function finds contours, draws them and their approximation by ellipses.
         """
         # Create the destination images
-        image04 = np.zeros(self.source_image.size(), dtype=np.uint8)
+        image04 = np.zeros(self.source_image.shape[:2],dtype = np.uint8)
 
         # Threshold the source image. This needful for cv2.findContours().
         # Python: retval, dst	=	cv.threshold(	src, thresh, maxval, type[, dst]	)
@@ -53,9 +53,8 @@ class FitEllipse:
 
         for c in contour_iterator(cont):
             if len(c) > ellipse_size:
-                PointArray2D32f = cv.CreateMat(1, len(c), cv.CV_32FC2)
-                for (i, (x, y)) in enumerate(c):
-                    PointArray2D32f[0, i] = (x, y)
+                #ellipse = cv.fitEllipse(cnt)
+                #cv.ellipse(img,ellipse,(0,255,0),2)
 
                 # Draw the current contour in gray
                 # Python: image	=	cv.drawContours(	image, contours, contourIdx, color[, thickness[, lineType[, hierarchy[, maxLevel[, offset]]]]]	)
@@ -66,7 +65,8 @@ class FitEllipse:
                     cv2.imwrite(strng,image04)
                 color = (255,255,255)
 
-                (center, size, angle) = cv.FitEllipse2(PointArray2D32f)
+                ellipse = cv2.fitEllipse(c)
+                cv2.ellipse(cimg,ellipse,(255,255,255),2)
 
                 # Convert ellipse data from float to integer representation.
                 center = (cv.Round(center[0]), cv.Round(center[1]))
